@@ -10,11 +10,21 @@ class CancelError extends Error {
 		return true;
 	}
 }
+type CancelHandler =  () => void;
+type OnCanelFn = (handler: CancelHandler) => void;
+type OnResolveFn<T> = (value: T | PromiseLike<T>) => void;
+type OnRejectFn = (reason?: any) => void
 
-class PCancelable {
-	static fn(userFn) {
-		return (...arguments_) => {
-			return new PCancelable((resolve, reject, onCancel) => {
+class PCancelable<T = any> extends Promise<T> {
+
+	private _cancelHandlers: CancelHandler[]:
+	private _isPending: boolean;
+	private _isCanceled : boolean;
+	private _rejectOnCancel: boolean;
+private _promise: Promise<T>
+	static fn<F>(userFn: (...args: any[]) => Promise<F>) {
+		return (...arguments_: any[]) => {
+			return new PCancelable((resolve:OnResolveFn<F>, reject:OnRejectFn, onCancel: OnCanelFn) => {
 				arguments_.push(onCancel);
 				// eslint-disable-next-line promise/prefer-await-to-then
 				userFn(...arguments_).then(resolve, reject);
@@ -22,7 +32,9 @@ class PCancelable {
 		};
 	}
 
-	constructor(executor) {
+	constructor(executor:  (resolve: OnResolveFn<T>, reject: OnRejectFn, onCancel?: OnCanelFn) => void) {
+		super(executor);
+		this.
 		this._cancelHandlers = [];
 		this._isPending = true;
 		this._isCanceled = false;
